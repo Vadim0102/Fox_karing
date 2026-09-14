@@ -26,6 +26,7 @@ import 'package:karing/app/modules/auto_update_manager.dart';
 import 'package:karing/app/private/sentry_utils_private.dart';
 import 'package:karing/app/utils/app_args.dart';
 import 'package:karing/app/utils/app_utils.dart';
+import 'package:karing/fork/karing_fork_profiles.dart';
 //import 'package:karing/app/utils/geoip_subnet_utils.dart';
 //import 'package:karing/app/utils/file_utils.dart';
 
@@ -138,6 +139,7 @@ void main(List<String> args) async {
   await VPNService.initABI();
   await RemoteConfigManager.init();
   await SettingManager.init();
+  await ForkProfileBootstrap.bootstrap();
   await BoardProviderManager.init();
   if (!SettingManager.getConfig().disableAppImproveData) {
     await SentryUtilsPrivate.init();

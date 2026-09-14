@@ -25,6 +25,7 @@ import 'package:karing/app/modules/remote_config_manager.dart';
 import 'package:karing/app/modules/server_manager.dart';
 import 'package:karing/app/modules/setting_manager.dart';
 import 'package:karing/app/modules/zashboard.dart';
+import 'package:karing/fork/karing_fork_profiles.dart';
 import 'package:karing/app/runtime/return_result.dart';
 import 'package:karing/app/utils/accessibility_utils.dart';
 import 'package:karing/app/utils/app_lifecycle_state_notify.dart';
@@ -59,14 +60,12 @@ import 'package:karing/screens/diversion_rules_custom_set_screen.dart';
 import 'package:karing/screens/diversion_rules_screen.dart';
 import 'package:karing/screens/group_helper.dart';
 import 'package:karing/screens/home_screen_widgets.dart';
-import 'package:karing/screens/language_settings_screen.dart';
 import 'package:karing/screens/local_image_provider.dart';
 import 'package:karing/screens/my_profiles_screen.dart';
 import 'package:karing/screens/net_check_screen.dart';
 import 'package:karing/screens/net_connections_screen.dart';
 import 'package:karing/screens/novice_screen.dart';
 import 'package:karing/screens/perapp_android_screen.dart';
-import 'package:karing/screens/region_settings_screen.dart';
 import 'package:karing/screens/richtext_viewer.screen.dart';
 import 'package:karing/screens/scheme_handler.dart';
 import 'package:karing/screens/server_select_screen.dart';
@@ -222,9 +221,11 @@ class _HomeScreenState extends LasyRenderingState<HomeScreen>
   Timer? _timerStateChecker;
   Timer? _timerConnectToCore;
   Timer? _timerCurrentUrltest;
+  Timer? _timerForkProfileRefresh;
   CurrentServerForUrltest _currentServerForUrltest = CurrentServerForUrltest();
 
   ProxyConfig _currentServer = ProxyConfig();
+  String _forkProfileStatus = "";
 
   bool _onInitAllFinished = false;
   String _initUrl = "";
@@ -246,6 +247,11 @@ class _HomeScreenState extends LasyRenderingState<HomeScreen>
       SchemeHandler.handle(context, url);
     };
     _initUrl = widget.launchUrl;
+    _timerForkProfileRefresh = Timer.periodic(
+      const Duration(hours: 1),
+      (_) => _refreshForkProfileStatus(),
+    );
+    _refreshForkProfileStatus();
 
     _widgetOptions = HomeWidgetOptions(
       runtimeInfo: HomeWidgetCard1Options(() {}, null, _focusNodeRuntimeInfo),
@@ -441,6 +447,26 @@ class _HomeScreenState extends LasyRenderingState<HomeScreen>
     _widgetOptions.trafficSpeedInfo!.notifier2.value = "↓ 0 B/s";
   }
 
+  Future<void> _refreshForkProfileStatus() async {
+    try {
+      final profiles = await ForkProfileBootstrap.bootstrap();
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _forkProfileStatus = profiles.isEmpty
+            ? "No built-in profiles"
+            : "${profiles.length} built-in profiles ready";
+      });
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _forkProfileStatus = "Built-in profiles unavailable";
+        });
+      }
+    }
+  }
+
   void showAgreement() async {
     String? agreement;
     try {
@@ -477,21 +503,6 @@ class _HomeScreenState extends LasyRenderingState<HomeScreen>
     );
 
     var tcontext = Translations.of(context);
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        settings: LanguageSettingsScreen.routeSettings(),
-        fullscreenDialog: true,
-        builder: (context) => LanguageSettingsScreen(
-          canPop: false,
-          canGoBack: false,
-          nextText: () {
-            var tcontext = Translations.of(context);
-            return tcontext.meta.next;
-          },
-        ),
-      ),
-    );
     tcontext = Translations.of(context);
 
     if (Platform.isAndroid) {
@@ -514,19 +525,6 @@ class _HomeScreenState extends LasyRenderingState<HomeScreen>
         ),
       );
     }
-
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        settings: RegionSettingsScreen.routeSettings(),
-        fullscreenDialog: true,
-        builder: (context) => RegionSettingsScreen(
-          canPop: false,
-          canGoBack: false,
-          nextText: tcontext.meta.next,
-        ),
-      ),
-    );
 
     var settingConfig = SettingManager.getConfig();
     var regionCode = settingConfig.regionCode.toLowerCase();
@@ -2418,6 +2416,8 @@ class _HomeScreenState extends LasyRenderingState<HomeScreen>
 
     ErrorReporterUtils.register(null);
     _stopStateCheckTimer();
+    _timerForkProfileRefresh?.cancel();
+    _timerForkProfileRefresh = null;
 
     _disconnectToService();
     _disconnectToCurrent();
@@ -2642,6 +2642,22 @@ class _HomeScreenState extends LasyRenderingState<HomeScreen>
                           controller: _scrollController,
                           child: Column(
                             children: [
+                              if (!_edit && _forkProfileStatus.isNotEmpty)
+                                Card(
+                                  margin: const EdgeInsets.only(bottom: 12),
+                                  child: ListTile(
+                                    dense: true,
+                                    leading: Icon(
+                                      _state == FlutterVpnServiceState.started
+                                          ? Icons.check_circle_outline
+                                          : Icons.info_outline,
+                                    ),
+                                    title: Text(tcontext.meta.currentProfile),
+                                    subtitle: Text(
+                                      "$_forkProfileStatus${_currentServer.latency.isNotEmpty ? "  Ping: ${_currentServer.latency} ms" : ""}",
+                                    ),
+                                  ),
+                                ),
                               _edit
                                   ? SuperGrid(
                                       key: _superGridKey,

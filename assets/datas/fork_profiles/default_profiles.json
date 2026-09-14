@@ -1,0 +1,175 @@
+{
+  "profiles": [
+    {
+      "id": "normal_full_access",
+      "name": "Normal Full Access",
+      "description": "Full internet access profile for unrestricted networks.",
+      "whitelistMode": false,
+      "config": {
+        "log": { "level": "info", "timestamp": true },
+        "dns": {
+          "servers": [
+            { "tag": "dns", "address": "8.8.8.8" }
+          ]
+        },
+        "inbounds": [
+          {
+            "type": "tun",
+            "tag": "tun-in",
+            "interface_name": "karing",
+            "inet4_address": "172.18.0.1/30",
+            "auto_route": true,
+            "strict_route": false
+          }
+        ],
+        "outbounds": [
+          {
+            "type": "selector",
+            "tag": "proxy",
+            "outbounds": ["auto", "direct"],
+            "default": "auto"
+          },
+          {
+            "type": "urltest",
+            "tag": "auto",
+            "outbounds": ["direct"],
+            "url": "https://www.google.com",
+            "interval": "5m",
+            "tolerance": 100
+          },
+          { "type": "direct", "tag": "direct" },
+          { "type": "block", "tag": "block" }
+        ]
+      }
+    },
+    {
+      "id": "normal_yandex_only",
+      "name": "Normal Yandex Only",
+      "description": "Good fallback when Google is blocked but Yandex remains reachable.",
+      "whitelistMode": false,
+      "config": {
+        "log": { "level": "info", "timestamp": true },
+        "dns": {
+          "servers": [
+            { "tag": "dns", "address": "77.88.8.8" }
+          ]
+        },
+        "inbounds": [
+          {
+            "type": "tun",
+            "tag": "tun-in",
+            "interface_name": "karing",
+            "inet4_address": "172.18.0.1/30",
+            "auto_route": true,
+            "strict_route": false
+          }
+        ],
+        "outbounds": [
+          {
+            "type": "selector",
+            "tag": "proxy",
+            "outbounds": ["yandex", "direct"],
+            "default": "yandex"
+          },
+          { "type": "direct", "tag": "direct" },
+          { "type": "http", "tag": "yandex", "server": "213.180.204.3", "server_port": 443 },
+          { "type": "block", "tag": "block" }
+        ]
+      }
+    },
+    {
+      "id": "whitelist_google_blocked_yandex_ok",
+      "name": "Whitelist Google Blocked / Yandex OK",
+      "description": "Restricted whitelist mode when Google is blocked but Yandex works.",
+      "whitelistMode": true,
+      "config": {
+        "log": { "level": "info", "timestamp": true },
+        "dns": {
+          "servers": [
+            { "tag": "dns", "address": "77.88.8.8" }
+          ]
+        },
+        "inbounds": [
+          {
+            "type": "tun",
+            "tag": "tun-in",
+            "interface_name": "karing",
+            "inet4_address": "172.18.0.1/30",
+            "auto_route": true,
+            "strict_route": false
+          }
+        ],
+        "outbounds": [
+          {
+            "type": "selector",
+            "tag": "proxy",
+            "outbounds": ["yandex", "direct"],
+            "default": "yandex"
+          },
+          { "type": "direct", "tag": "direct" },
+          { "type": "http", "tag": "yandex", "server": "213.180.204.3", "server_port": 443 },
+          { "type": "block", "tag": "block" }
+        ]
+      }
+    },
+    {
+      "id": "whitelist_google_allowed",
+      "name": "Whitelist Full Allowed",
+      "description": "Whitelist profile for restricted networks but with a few allowed destinations.",
+      "whitelistMode": true,
+      "config": {
+        "log": { "level": "info", "timestamp": true },
+        "dns": {
+          "servers": [
+            { "tag": "dns", "address": "8.8.8.8" }
+          ]
+        },
+        "inbounds": [
+          {
+            "type": "tun",
+            "tag": "tun-in",
+            "interface_name": "karing",
+            "inet4_address": "172.18.0.1/30",
+            "auto_route": true,
+            "strict_route": false
+          }
+        ],
+        "outbounds": [
+          {
+            "type": "selector",
+            "tag": "proxy",
+            "outbounds": ["google", "yandex", "direct"],
+            "default": "google"
+          },
+          { "type": "direct", "tag": "direct" },
+          { "type": "http", "tag": "google", "server": "216.58.214.206", "server_port": 443 },
+          { "type": "http", "tag": "yandex", "server": "213.180.204.3", "server_port": 443 },
+          { "type": "block", "tag": "block" }
+        ]
+      }
+    },
+    {
+      "id": "offline_fallback",
+      "name": "Offline Fallback",
+      "description": "Emergency profile when the internet is unavailable.",
+      "whitelistMode": false,
+      "config": {
+        "log": { "level": "warn", "timestamp": true },
+        "inbounds": [
+          {
+            "type": "tun",
+            "tag": "tun-in",
+            "interface_name": "karing",
+            "inet4_address": "172.18.0.1/30",
+            "auto_route": true,
+            "strict_route": false
+          }
+        ],
+        "outbounds": [
+          { "type": "direct", "tag": "direct" },
+          { "type": "block", "tag": "block" }
+        ]
+      }
+    }
+  ]
+}
