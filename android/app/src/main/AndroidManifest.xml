@@ -53,10 +53,10 @@
             <data android:scheme="file" />
         </intent>
     </queries>
-    <application android:label="Karing" android:name=".MyApplication"
+    <application android:label="Fox Karing" android:name=".MyApplication"
         android:usesCleartextTraffic="true"
         android:banner="@mipmap/ic_tv_banner"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/fox_karing_launcher"
         android:extractNativeLibs="true">
         <activity android:name=".MainActivity" 
             android:exported="true" 
@@ -100,7 +100,7 @@
             android:directBootAware="true"
             android:exported="true"
             android:icon="@drawable/ic_tile"
-            android:label="Karing" 
+            android:label="Fox Karing"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
             tools:targetApi="n">
             <intent-filter>
@@ -114,9 +114,9 @@
             android:name=".AutomationCommandReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.nebula.karing.action.CONNECT" />
-                <action android:name="com.nebula.karing.action.DISCONNECT" />
-                <action android:name="com.nebula.karing.action.RECONNECT" />
+                <action android:name="com.fox.karing.action.CONNECT" />
+                <action android:name="com.fox.karing.action.DISCONNECT" />
+                <action android:name="com.fox.karing.action.RECONNECT" />
             </intent-filter>
         </receiver>
         <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.fileProvider" android:exported="false" android:grantUriPermissions="true" tools:replace="android:authorities">

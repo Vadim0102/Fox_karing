@@ -10,9 +10,9 @@ import org.json.JSONObject
 
 class AutomationCommandReceiver : BroadcastReceiver() {
     companion object {
-        const val ACTION_CONNECT = "com.nebula.karing.action.CONNECT"
-        const val ACTION_DISCONNECT = "com.nebula.karing.action.DISCONNECT"
-        const val ACTION_RECONNECT = "com.nebula.karing.action.RECONNECT"
+        const val ACTION_CONNECT = "com.fox.karing.action.CONNECT"
+        const val ACTION_DISCONNECT = "com.fox.karing.action.DISCONNECT"
+        const val ACTION_RECONNECT = "com.fox.karing.action.RECONNECT"
     }
     private fun serviceFile(context: Context): File {
         return File(context.filesDir, io.nebula.vpn_service.VpnServiceImpl.service_file_name)
